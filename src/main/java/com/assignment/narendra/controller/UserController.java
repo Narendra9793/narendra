@@ -37,6 +37,20 @@ public class UserController {
     @Autowired
     private ProductService productService;
 
+    // localhost:2020/api/user/ping
+    @GetMapping("/ping")
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("This is ping API");
+    }
+
+    // localhost:2020/api/user/profile
+    @GetMapping("/profile")
+    public ResponseEntity<User> getProfile(Principal principal) {
+        User user = this.userRepository.findByEmail(principal.getName());
+        return ResponseEntity.ok(user);
+    }
+
+
     // localhost:2020/api/user/allMyProducts
     @GetMapping("/allMyProducts")
     public ResponseEntity<List<Product>> getAllMyProducts(Principal principal) {
