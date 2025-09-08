@@ -1,9 +1,12 @@
 package com.assignment.narendra.controller;
 
+import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.assignment.narendra.model.User;
@@ -19,6 +23,7 @@ import com.assignment.narendra.model.Product;
 import com.assignment.narendra.repository.ProductRepository;
 import com.assignment.narendra.repository.UserRepository;
 import com.assignment.narendra.service.ProductService;
+import com.assignment.narendra.utils.ProductSpecifications;
 
 @RestController
 @RequestMapping("/api/user")
@@ -35,10 +40,25 @@ public class UserController {
 
 
     // localhost:2020/api/user/allProducts
-    @GetMapping("/allMyProducts")
-    public ResponseEntity<List<Product>> getAllMyProducts(Principal principal) {
+    @GetMapping("/allProducts")
+    public ResponseEntity<List<Product>> getAllProducts(
+        Principal principal,
+        @RequestParam(required = false) BigDecimal minPrice,
+        @RequestParam(required = false) BigDecimal maxPrice,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) List<String> tags) {
+
+            Specification<Product> spec = Specification
+            .where(ProductSpecifications.hasCategory(category))
+            .and(ProductSpecifications.priceBetween(minPrice, maxPrice));
+
+
         User user = this.userRepository.findByEmail(principal.getName());
-        return ResponseEntity.ok(user.getMyProducts());
+        List<Product> allProducts = this.productRepository.findAll(spec);
+        List<Product> filtered = allProducts.stream()
+            .filter(product -> !user.getCart().contains(product))
+            .toList();
+        return ResponseEntity.ok(filtered);
     }
 
     //  localhost:2020/api/user/addProduct
