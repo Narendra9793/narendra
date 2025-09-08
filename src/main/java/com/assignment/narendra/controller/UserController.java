@@ -37,7 +37,13 @@ public class UserController {
     @Autowired
     private ProductService productService;
 
-
+    // localhost:2020/api/user/allMyProducts
+    @GetMapping("/allMyProducts")
+    public ResponseEntity<List<Product>> getAllMyProducts(Principal principal) {
+        User user = this.userRepository.findByEmail(principal.getName());
+        List<Product> products = user.getMyProducts();
+        return ResponseEntity.ok(products);
+    }
 
     // localhost:2020/api/user/allProducts
     @GetMapping("/allProducts")
